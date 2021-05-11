@@ -25,7 +25,7 @@ android {
         def debugFile = file("$buildDir/outputs/aar/${archivesBaseName}-debug.aar")
         tasks.named("assembleDebug").configure {
             doLast {
-                debugFile.renameTo("$buildDir/outputs/aar/${archivesBaseName}-${version}.aar")
+                debugFile.renameTo("$buildDir/outputs/aar/${archivesBaseName}-${version}-debug.aar")
             }
         }
         def releaseFile = file("$buildDir/outputs/aar/${archivesBaseName}-release.aar")
