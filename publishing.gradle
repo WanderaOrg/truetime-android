@@ -31,7 +31,7 @@ publishing {
             groupId = packageName
             artifactId = archivesBaseName
 
-            def targetFile = "$buildDir/outputs/aar/${artifactId}-release.aar"
+            def targetFile = "$buildDir/outputs/aar/${artifactId}-release-${version}.aar"
             println "publishing: " + targetFile
             // Tell maven to prepare the generated "*.aar" file for publishing
             artifact(targetFile)
