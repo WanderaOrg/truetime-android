@@ -7,36 +7,6 @@ def artifactoryRepositoryVariant
 version = versionName
 group = 'com.github.instacart'
 
-android {
-    libraryVariants.all { variant ->
-        println "variant: " + variant.baseName
-        variant.outputs.all { output ->
-            if (variant.getPackageLibraryProvider().get() != null) {
-                outputFileName = "${archivesBaseName}-${version}.aar"
-                println "outputFileName: " + outputFileName
-            }
-        }
-    }
-
-    // workaround for https://github.com/gradle/gradle/issues/8328
-    // The name is properly built and reported in the script above, but the output file names are simply
-    // truetime-debug.aar and truetime-release.aar
-    afterEvaluate {
-        def debugFile = file("$buildDir/outputs/aar/${archivesBaseName}-debug.aar")
-        tasks.named("assembleDebug").configure {
-            doLast {
-                debugFile.renameTo("$buildDir/outputs/aar/${archivesBaseName}-${version}.aar")
-            }
-        }
-        def releaseFile = file("$buildDir/outputs/aar/${archivesBaseName}-release.aar")
-        tasks.named("assembleRelease").configure {
-            doLast {
-                releaseFile.renameTo("$buildDir/outputs/aar/${archivesBaseName}-${version}.aar")
-            }
-        }
-    }
-}
-
 publishing {
     repositories {
         maven {
@@ -61,12 +31,10 @@ publishing {
             groupId = packageName
             artifactId = archivesBaseName
 
-            def targetFile = "$buildDir/outputs/aar/${archivesBaseName}-${version}.aar"
+            def targetFile = "$buildDir/outputs/aar/${artifactId}-${version}.aar"
             println "publishing: " + targetFile
             // Tell maven to prepare the generated "*.aar" file for publishing
             artifact(targetFile)
         }
     }
 }
-
-group='com.github.instacart'

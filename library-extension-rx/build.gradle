@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
-apply from: "../publishing.gradle"
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -15,6 +14,7 @@ android {
 
         archivesBaseName = "truetime-rx"
 
+
     }
     buildTypes {
         release {
@@ -27,6 +27,14 @@ android {
         buildConfig = false
     }
 
+    libraryVariants.all { variant ->
+        variant.outputs.each { output ->
+            output.outputFileName = "${output.outputFileName}"
+                    .replace(".aar", "-${version}.aar")
+                    .replace("-release", "")
+        }
+    }
+
 }
 
 dependencies {
@@ -34,3 +42,4 @@ dependencies {
     api project(path: ':library')
 }
 
+apply from: "../publishing.gradle"
