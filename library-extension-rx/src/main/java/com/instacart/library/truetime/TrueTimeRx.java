@@ -1,6 +1,19 @@
 package com.instacart.library.truetime;
 
 import android.content.Context;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+
+import org.reactivestreams.Publisher;
+
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
@@ -12,21 +25,14 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import org.reactivestreams.Publisher;
 
 public class TrueTimeRx
       extends TrueTime {
 
     private static final TrueTimeRx RX_INSTANCE = new TrueTimeRx();
     private static final String TAG = TrueTimeRx.class.getSimpleName();
+
+    private Predicate<InetAddress> _addressFilter = null;
 
     private int _retryCount = 50;
 
@@ -75,6 +81,21 @@ public class TrueTimeRx
 
     public TrueTimeRx withRetryCount(int retryCount) {
         _retryCount = retryCount;
+        return this;
+    }
+
+    public TrueTimeRx withoutIpV6() {
+        _addressFilter = new Predicate<InetAddress>() {
+            @Override
+            public boolean test(InetAddress inetAddress) {
+                return inetAddress instanceof Inet4Address;
+            }
+        };
+        return this;
+    }
+
+    public TrueTimeRx withCustomIpAddressFilter(Predicate<InetAddress> predicate) {
+        _addressFilter = predicate;
         return this;
     }
 
@@ -180,7 +201,23 @@ public class TrueTimeRx
                           public Flowable<InetAddress> apply(String ntpPoolAddress) {
                               try {
                                   TrueLog.d(TAG, "---- resolving ntpHost : " + ntpPoolAddress);
-                                  return Flowable.fromArray(InetAddress.getAllByName(ntpPoolAddress));
+                                  InetAddress[] addresses = InetAddress.getAllByName(ntpPoolAddress);
+                                  Predicate<InetAddress> filter = _addressFilter;
+                                  if (filter == null) {
+                                      return Flowable.fromArray(addresses);
+                                  } else {
+                                      ArrayList<InetAddress> validAddresses = new ArrayList<>();
+                                      for (InetAddress i : addresses) {
+                                          try {
+                                              if (filter.test(i)) {
+                                                  validAddresses.add(i);
+                                              }
+                                          } catch (Exception e) {
+                                              return Flowable.error(e);
+                                          }
+                                      }
+                                      return Flowable.fromIterable(validAddresses);
+                                  }
                               } catch (UnknownHostException e) {
                                   return Flowable.error(e);
                               }
