@@ -2,6 +2,7 @@ package com.instacart.library.truetime;
 
 import android.content.Context;
 
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
